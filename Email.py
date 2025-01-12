@@ -1,55 +1,55 @@
-from typing import List, Optional
+from typing import List
+
+
+class AdresseEmail:
+    def __init__(self, adresse: str):
+        self.adresse = adresse
+        if not self.est_valide():
+            raise ValueError(f"Adresse email invalide : {adresse}")
+
+    def est_valide(self) -> bool:
+        # Validation simple du format de l'adresse email
+        return re.match(r"[^@]+@[^@]+\.[^@]+", self.adresse) is not None
+
+
+class TexteEmail:
+    def __init__(self, titre: str, corps: str):
+        # Maintenant, titre et corps sont obligatoires
+        self.titre = titre
+        self.corps = corps
+
 
 class FichierJoint:
-    """
-    Représente un fichier joint à un email.
-    """
-    def __init__(self, nom: str, type: str, taille: int):
-        """
-        Initialise un fichier joint avec un nom, un type et une taille.
-        :param nom: Nom du fichier (ex. "document.pdf").
-        :param type: Type MIME du fichier (ex. "application/pdf").
-        :param taille: Taille du fichier en Ko.
-        """
+    def __init__(self, nom: str, contenu: bytes):
         self.nom = nom
-        self.type = type
-        self.taille = taille
+        self.contenu = contenu
 
     def __str__(self):
-        return f"FichierJoint(nom={self.nom}, type={self.type}, taille={self.taille} Ko)"
+        return f"Fichier Joint: {self.nom}"
 
 
 class Email:
-    """
-    Représente un email avec un titre, un texte, un expéditeur, un destinataire,
-    et éventuellement des fichiers joints.
-    """
-    def __init__(self, expediteur: str, destinataire: str,
-                 titre: Optional[str] = None, texte: Optional[str] = None,
-                 fichiers_joints: Optional[List[FichierJoint]] = None):
-        """
-        Initialise un email.
-        :param expediteur: Adresse email de l'expéditeur.
-        :param destinataire: Adresse email du destinataire.
-        :param titre: Titre de l'email (facultatif).
-        :param texte: Texte de l'email (facultatif).
-        :param fichiers_joints: Liste des fichiers joints (facultatif).
-        """
-        self.titre = titre
-        self.texte = texte
-        self.expediteur = expediteur
-        self.destinataire = destinataire
-        self.fichiers_joints = fichiers_joints if fichiers_joints else []
+    def __init__(
+            self,
+            expediteur: str,
+            destinataire: str,
+            titre: str,
+            corps: str,
+            fichiers: List[FichierJoint] = None  # Fichiers joints sont optionnels
+    ):
+        # Composition
+        self.expediteur = AdresseEmail(expediteur)
+        self.destinataire = AdresseEmail(destinataire)
 
-    def ajouter_fichier_joint(self, fichier: FichierJoint):
-        """
-        Ajoute un fichier joint à l'email.
-        :param fichier: Un objet de type FichierJoint.
-        """
-        self.fichiers_joints.append(fichier)
+        # Composition
+        self.texte = TexteEmail(titre, corps)
 
-    def __str__(self):
-        fichiers = "\n".join([str(f) for f in self.fichiers_joints]) if self.fichiers_joints else "Aucun fichier joint"
-        return (f"Email(titre={self.titre}, texte={self.texte}, "
-                f"expediteur={self.expediteur}, destinataire={self.destinataire}, "
-                f"fichiers_joints=\n{fichiers})")
+        # Composition (Les fichiers sont optionnels)
+        self.fichiers = fichiers if fichiers is not None else []
+
+    def envoyer(self):
+        print(f"Envoi de l'email de {self.expediteur.adresse} à {self.destinataire.adresse}")
+        print(f"Titre: {self.texte.titre}")
+        print(f"Corps: {self.texte.corps}")
+        if self.fichiers:
+            print(f"Fichiers joints: {[f.nom for f in self.fichiers]}")
